@@ -1,14 +1,20 @@
 export function stripHtml(html: string): string {
   return html
-    .replace(/<[^>]*>/g, '')
     .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"')
     .replace(/&#x27;/g, "'")
     .replace(/&#39;/g, "'")
+    .replace(/&#x2F;/g, '/')
+    .replace(/<[^>]*>/g, '')
     .replace(/\s+/g, ' ')
     .trim()
+}
+
+export function sanitizeText(text: string | null): string {
+  if (!text) return ''
+  return stripHtml(text)
 }
 
 export interface RSSItem {

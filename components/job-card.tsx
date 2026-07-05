@@ -15,6 +15,20 @@ interface JobCardProps {
   isSaved?: boolean
 }
 
+function displayText(text: string | null): string {
+  if (!text) return ''
+  return text
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#x27;/g, "'")
+    .replace(/&#x2F;/g, '/')
+    .replace(/<[^>]*>/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 function relativeDate(dateStr: string | null): string | null {
   if (!dateStr) return null
   const now = new Date()
@@ -85,11 +99,12 @@ export function JobCard({
   const [saved, setSaved] = useState(isSaved)
   const [saving, setSaving] = useState(false)
 
+  const cleanRawText = displayText(job.raw_text)
   const dateLabel = relativeDate(job.posted_at)
   const ote = parseOTE(job.comp_structure)
-  const hasRawText = job.raw_text && job.raw_text.length > 0
+  const hasRawText = cleanRawText.length > 0
   const previewText = hasRawText
-    ? job.raw_text!.slice(0, 200) + (job.raw_text!.length > 200 ? '...' : '')
+    ? cleanRawText.slice(0, 200) + (cleanRawText.length > 200 ? '...' : '')
     : null
 
   const handlePitch = useCallback(() => {
@@ -226,9 +241,9 @@ export function JobCard({
         {previewText && (
           <div className="text-xs text-muted-foreground leading-relaxed">
             <p className={expanded ? '' : 'line-clamp-2'}>
-              {expanded ? job.raw_text : previewText}
+              {expanded ? cleanRawText : previewText}
             </p>
-            {job.raw_text!.length > 200 && (
+            {cleanRawText.length > 200 && (
               <button
                 onClick={() => setExpanded(!expanded)}
                 className="text-primary hover:underline mt-1 text-[11px]"
