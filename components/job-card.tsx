@@ -156,10 +156,10 @@ export function JobCard({
 
   return (
     <Card
-      className="flex flex-col animate-enter"
+      className="flex flex-col animate-enter min-w-0 w-full"
       style={{ animationDelay: `${index * 0.05}s` }}
     >
-      <CardContent className="p-4 flex flex-col gap-3 flex-1">
+      <CardContent className="p-4 flex flex-col gap-3 flex-1 min-w-0 break-words">
         <div className="flex items-start justify-between gap-2">
           <div className="flex flex-col min-w-0 gap-1">
             <div className="flex items-center gap-2">

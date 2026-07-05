@@ -364,7 +364,7 @@ export function DashboardClient({
 
       <Nav actions={actionButtons} />
 
-      <main className="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 py-8 sm:py-12 relative">
+      <main className="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 py-8 sm:py-12 relative overflow-x-hidden">
         {error && (
           <Card className="mb-8 border-destructive/30">
             <CardContent className="p-4 text-sm text-destructive">
