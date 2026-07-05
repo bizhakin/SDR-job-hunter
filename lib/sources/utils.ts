@@ -7,6 +7,8 @@ export function stripHtml(html: string): string {
     .replace(/&#x27;/g, "'")
     .replace(/&#39;/g, "'")
     .replace(/&#x2F;/g, '/')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&#160;/g, ' ')
     .replace(/<[^>]*>/g, '')
     .replace(/\s+/g, ' ')
     .trim()

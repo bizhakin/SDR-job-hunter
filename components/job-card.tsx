@@ -24,6 +24,8 @@ function displayText(text: string | null): string {
     .replace(/&quot;/g, '"')
     .replace(/&#x27;/g, "'")
     .replace(/&#x2F;/g, '/')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&#160;/g, ' ')
     .replace(/<[^>]*>/g, '')
     .replace(/\s+/g, ' ')
     .trim()
@@ -103,9 +105,6 @@ export function JobCard({
   const dateLabel = relativeDate(job.posted_at)
   const ote = parseOTE(job.comp_structure)
   const hasRawText = cleanRawText.length > 0
-  const previewText = hasRawText
-    ? cleanRawText.slice(0, 200) + (cleanRawText.length > 200 ? '...' : '')
-    : null
 
   const handlePitch = useCallback(() => {
     setPitching(true)
@@ -238,17 +237,24 @@ export function JobCard({
           )}
         </div>
 
-        {previewText && (
-          <div className="text-xs text-muted-foreground leading-relaxed">
-            <p className={expanded ? '' : 'line-clamp-2'}>
-              {expanded ? cleanRawText : previewText}
-            </p>
-            {cleanRawText.length > 200 && (
+        {hasRawText && (
+          <div className="relative text-xs text-muted-foreground leading-relaxed">
+            <div
+              className={`overflow-hidden transition-all duration-300 ${
+                expanded ? 'max-h-none' : 'max-h-[240px]'
+              }`}
+            >
+              <p className="whitespace-pre-wrap">{cleanRawText}</p>
+            </div>
+            {!expanded && cleanRawText.length > 400 && (
+              <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-background to-transparent pointer-events-none" />
+            )}
+            {cleanRawText.length > 400 && (
               <button
                 onClick={() => setExpanded(!expanded)}
-                className="text-primary hover:underline mt-1 text-[11px]"
+                className="text-primary hover:underline mt-0.5 text-[11px] relative z-10"
               >
-                {expanded ? 'Show less' : 'Show more'}
+                {expanded ? 'Show less' : 'Show full description'}
               </button>
             )}
           </div>
