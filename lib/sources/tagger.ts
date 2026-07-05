@@ -56,6 +56,52 @@ const roleTypePriority: (keyof typeof keywordTaxonomy)[] = [
   'other',
 ]
 
+const salesAdjacentKeywords = [
+  'sales', 'sell', 'selling', 'client', 'lead generation',
+  'commission', 'high ticket', 'income', 'appointment setter',
+  'appointment setting', 'closer', 'account executive',
+  'revenue', 'quota', 'prospect', 'outbound', 'inbound',
+  'deal', 'pipeline', 'closing', 'customer acquisition',
+  'sales rep', 'sales development', 'business development',
+  'account management', 'cold call', 'cold email',
+  'lead qualification', 'prospecting', 'upsell', 'cross-sell',
+  'sales process', 'sales cycle', 'win rate',
+]
+
+const excludeKeywords = [
+  'customer service', 'customer support', 'help desk', 'support specialist',
+  'technical support', 'it support',
+  'software engineer', 'software developer', 'full stack', 'frontend',
+  'backend', 'devops', 'data engineer',
+  'data entry', 'administrative assistant', 'executive assistant',
+  'receptionist', 'office manager',
+  'warehouse', 'warehouse associate', 'delivery driver', 'driver',
+  'nurse', 'cna', 'registered nurse', 'phlebotomist', 'medical assistant',
+  'certified nursing', 'caregiver',
+  'mechanic', 'electrician', 'plumber', 'hvac technician',
+  'cleaner', 'cleaning', 'janitor',
+  'cook', 'chef', 'server', 'bartender', 'host',
+  'security guard', 'security officer',
+  'laborer', 'general labor', 'construction worker',
+  'truck driver', 'cdl',
+]
+
+function isExcluded(title: string | null, rawText: string): boolean {
+  const text = [title ?? '', rawText].join(' ').toLowerCase()
+  for (const kw of excludeKeywords) {
+    if (text.includes(kw)) return true
+  }
+  return false
+}
+
+function hasSalesAdjacent(title: string | null, rawText: string): boolean {
+  const text = [title ?? '', rawText].join(' ').toLowerCase()
+  for (const kw of salesAdjacentKeywords) {
+    if (text.includes(kw)) return true
+  }
+  return false
+}
+
 const employmentKeywords = [
   '1099',
   'independent contractor',
@@ -83,16 +129,13 @@ function detectEmploymentType(
   if (source === 'upwork') return ['employment:1099']
 
   const searchText = [title ?? '', rawText].join(' ').toLowerCase()
-  const types: string[] = []
-
   for (const kw of employmentKeywords) {
     if (searchText.includes(kw.toLowerCase())) {
-      types.push('employment:1099')
-      break
+      return ['employment:1099']
     }
   }
 
-  return types
+  return []
 }
 
 const industryTaxonomy: Record<string, string[]> = {
@@ -258,20 +301,27 @@ export function tagJobs(jobs: JobPostInput[]): JobPostInput[] {
   const tagged: JobPostInput[] = []
 
   for (const job of jobs) {
+    if (isExcluded(job.title, job.raw_text)) continue
+
     const classification = classifyJob(job.title, job.raw_text)
-    const industries = classifyIndustries(job.title, job.raw_text)
-    const employmentTypes = detectEmploymentType(job.title, job.raw_text, job.source)
-
     const hasRole = !!classification.role_type
-    const hasIndustry = industries.length > 0
-    const hasEmployment = employmentTypes.length > 0
 
-    if (!hasRole && !hasIndustry && !hasEmployment) continue
+    if (!hasRole) {
+      const industries = classifyIndustries(job.title, job.raw_text)
+      const hasIndustry = industries.length > 0
+
+      if (!hasIndustry) continue
+
+      if (!hasSalesAdjacent(job.title, job.raw_text)) continue
+    }
+
+    const industries = classifyIndustries(job.title, job.raw_text)
+    const industryTags = industries.map((ind) => `industry:${ind}`)
+
+    const employmentTypes = detectEmploymentType(job.title, job.raw_text, job.source)
 
     const comp =
       job.comp_structure ?? extractCompensation(job.raw_text) ?? null
-
-    const industryTags = industries.map((ind) => `industry:${ind}`)
 
     tagged.push({
       ...job,
