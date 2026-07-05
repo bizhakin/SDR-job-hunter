@@ -56,6 +56,103 @@ const roleTypePriority: (keyof typeof keywordTaxonomy)[] = [
   'other',
 ]
 
+const industryTaxonomy: Record<string, string[]> = {
+  'coaching': [
+    'coaching', 'coach', 'life coach', 'business coach', 'sales coach',
+    'coaching program', 'coaching business', 'high-ticket coaching',
+  ],
+  'consulting': [
+    'consulting', 'consultant', 'management consulting', 'strategy consultant',
+    'sales consultant', 'business consulting',
+  ],
+  'b2b': [
+    'b2b', 'business to business', 'b2b sales', 'b2b saas',
+  ],
+  'bizop': [
+    'bizop', 'business opportunity', 'business ownership', 'partner program',
+    'biz opp', 'opportunity', 'own your own business',
+  ],
+  'amazon': [
+    'amazon', 'fba', 'amazon fba', 'amazon seller', 'ecommerce amazon',
+    'amazon ppc',
+  ],
+  'real-estate': [
+    'real estate', 'realtor', 'property', 'mortgage', 'real estate agent',
+    'real estate investor', 'property management',
+  ],
+  'fintech': [
+    'fintech', 'financial services', 'finance', 'financial', 'banking',
+    'investment', 'wealth management',
+  ],
+  'health': [
+    'health', 'medical', 'wellness', 'healthcare', 'health coach',
+    'medicare', 'health insurance',
+  ],
+  'saas': [
+    'saas', 'software as a service', 'b2b saas', 'saas sales',
+  ],
+  'home-services': [
+    'home services', 'home improvement', 'construction', 'remodeling',
+    'hvac', 'roofing', 'solar', 'pest control',
+  ],
+  'agency': [
+    'agency', 'marketing agency', 'digital agency', 'media agency',
+    'ad agency', 'creative agency',
+  ],
+  'education': [
+    'education', 'edtech', 'training', 'online education', 'course',
+    'learning', 'e-learning',
+  ],
+  'ecommerce': [
+    'ecommerce', 'e-commerce', 'shopify', 'dropshipping', 'online store',
+  ],
+  'marketing': [
+    'marketing', 'digital marketing', 'marketing agency', 'media buying',
+    'facebook ads', 'google ads', 'ppc',
+  ],
+  'legal': [
+    'legal', 'law firm', 'attorney', 'lawyer', 'legal services',
+  ],
+  'insurance': [
+    'insurance', 'life insurance', 'health insurance', 'medicare',
+    'auto insurance',
+  ],
+  'logistics': [
+    'logistics', 'supply chain', 'freight', 'shipping', 'transportation',
+    'trucking',
+  ],
+  'hospitality': [
+    'hospitality', 'hotel', 'travel', 'tourism', 'restaurant',
+  ],
+  'tech': [
+    'software', 'technology', 'tech', 'startup', 'engineering',
+    'developer', 'devops',
+  ],
+  'recruiting': [
+    'recruiting', 'recruitment', 'staffing', 'talent acquisition',
+    'headhunter', 'hr',
+  ],
+}
+
+export function classifyIndustries(
+  title: string | null,
+  rawText: string,
+): string[] {
+  const searchText = [title ?? '', rawText].join(' ').toLowerCase()
+  const found: string[] = []
+
+  for (const [industry, keywords] of Object.entries(industryTaxonomy)) {
+    for (const keyword of keywords) {
+      if (searchText.includes(keyword.toLowerCase())) {
+        found.push(industry)
+        break
+      }
+    }
+  }
+
+  return found
+}
+
 function classifyJob(
   title: string | null,
   rawText: string,
@@ -116,10 +213,13 @@ export function tagJobs(jobs: JobPostInput[]): JobPostInput[] {
     const comp =
       job.comp_structure ?? extractCompensation(job.raw_text) ?? null
 
+    const industries = classifyIndustries(job.title, job.raw_text)
+    const industryTags = industries.map((ind) => `industry:${ind}`)
+
     tagged.push({
       ...job,
       role_type: classification.role_type,
-      tags: [...new Set([...job.tags, ...classification.matchedTags])],
+      tags: [...new Set([...job.tags, ...classification.matchedTags, ...industryTags])],
       comp_structure: comp,
     })
   }
