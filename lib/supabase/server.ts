@@ -1,17 +1,15 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
-function getEnvVar(name: string): string {
-  const value = process.env[name]
-  if (!value) {
-    throw new Error(`Missing environment variable: ${name}. Set it in .env.local`)
-  }
-  return value
-}
-
 export async function getServiceSupabase() {
-  const supabaseUrl = getEnvVar('NEXT_PUBLIC_SUPABASE_URL')
-  const serviceRoleKey = getEnvVar('SUPABASE_SERVICE_ROLE_KEY')
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error(
+      'Missing Supabase credentials. Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in Vercel env vars.',
+    )
+  }
 
   return createServerClient(supabaseUrl, serviceRoleKey, {
     cookies: {
@@ -30,8 +28,14 @@ export async function getServiceSupabase() {
 }
 
 export async function getAuthenticatedSupabase() {
-  const supabaseUrl = getEnvVar('NEXT_PUBLIC_SUPABASE_URL')
-  const supabaseAnonKey = getEnvVar('NEXT_PUBLIC_SUPABASE_ANON_KEY')
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error(
+      'Missing Supabase credentials. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in Vercel env vars.',
+    )
+  }
 
   return createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {

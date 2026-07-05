@@ -1,4 +1,4 @@
-import { openRouterConfig } from './config'
+import { getOpenRouterConfig } from './config'
 
 interface OpenRouterChoice {
   message: {
@@ -14,12 +14,13 @@ interface OpenRouterResponse {
 }
 
 async function callModel(model: string, systemPrompt: string, userPrompt: string): Promise<string> {
-  const response = await fetch(`${openRouterConfig.baseUrl}/chat/completions`, {
+  const cfg = getOpenRouterConfig()
+  const response = await fetch(`${cfg.baseUrl}/chat/completions`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${openRouterConfig.apiKey}`,
-      'HTTP-Referer': openRouterConfig.siteUrl,
+      Authorization: `Bearer ${cfg.apiKey}`,
+      'HTTP-Referer': cfg.siteUrl,
       'X-Title': 'Closer Job Hunter',
     },
     body: JSON.stringify({
@@ -59,7 +60,8 @@ async function callModel(model: string, systemPrompt: string, userPrompt: string
 export async function generateWithFallback(systemPrompt: string, userPrompt: string): Promise<string> {
   let lastError: Error | null = null
 
-  const models = [openRouterConfig.primaryModel, openRouterConfig.fallbackModel]
+  const cfg = getOpenRouterConfig()
+  const models = [cfg.primaryModel, cfg.fallbackModel]
 
   for (const model of models) {
     try {
@@ -79,12 +81,13 @@ interface ChatMessage {
 }
 
 async function callModelChat(model: string, messages: ChatMessage[]): Promise<string> {
-  const response = await fetch(`${openRouterConfig.baseUrl}/chat/completions`, {
+  const cfg = getOpenRouterConfig()
+  const response = await fetch(`${cfg.baseUrl}/chat/completions`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${openRouterConfig.apiKey}`,
-      'HTTP-Referer': openRouterConfig.siteUrl,
+      Authorization: `Bearer ${cfg.apiKey}`,
+      'HTTP-Referer': cfg.siteUrl,
       'X-Title': 'Closer Job Hunter',
     },
     body: JSON.stringify({
@@ -121,7 +124,8 @@ async function callModelChat(model: string, messages: ChatMessage[]): Promise<st
 export async function chatWithFallback(messages: ChatMessage[]): Promise<string> {
   let lastError: Error | null = null
 
-  const models = [openRouterConfig.primaryModel, openRouterConfig.fallbackModel]
+  const cfg = getOpenRouterConfig()
+  const models = [cfg.primaryModel, cfg.fallbackModel]
 
   for (const model of models) {
     try {
