@@ -35,12 +35,13 @@ interface DashboardClientProps {
 }
 
 type SortKey = 'date' | 'match' | 'company'
-type RoleFilter = 'all' | 'closer' | 'setter' | 'sdr' | 'bdr'
+type RoleFilter = 'all' | 'sales' | 'closer' | 'setter' | 'sdr' | 'bdr'
 type DateFilter = 'any' | 'today' | '3days' | 'week' | '2weeks' | 'month'
 type CompFilter = 'any' | 'under50' | '50to80' | '80to120' | '120to150' | 'over150'
 
 const ROLE_OPTIONS: { label: string; value: RoleFilter }[] = [
   { label: 'All', value: 'all' },
+  { label: 'Sales', value: 'sales' },
   { label: 'Closer', value: 'closer' },
   { label: 'Setter', value: 'setter' },
   { label: 'SDR', value: 'sdr' },
@@ -295,7 +296,11 @@ export function DashboardClient({
     }
 
     if (roleFilter !== 'all') {
-      result = result.filter((job) => job.role_type === roleFilter)
+      if (roleFilter === 'sales') {
+        result = result.filter((job) => job.role_type !== null)
+      } else {
+        result = result.filter((job) => job.role_type === roleFilter)
+      }
     }
 
     if (industryFilter.length > 0) {

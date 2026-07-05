@@ -60,8 +60,6 @@ const keywordTaxonomy: Record<string, string[]> = {
     'commission only',
     '100% commission',
     'uncapped commission',
-    'closer',
-    'setter',
   ],
 }
 
@@ -73,30 +71,41 @@ const roleTypePriority: (keyof typeof keywordTaxonomy)[] = [
   'other',
 ]
 
-const salesAdjacentKeywords = [
-  'sales', 'sell', 'selling', 'sellers', 'client', 'clients',
-  'lead generation', 'lead gen', 'leads', 'generate leads',
-  'commission', 'high ticket', 'income', 'appointment setter',
-  'appointment setting', 'set appointments', 'closer',
-  'account executive', 'account manager', 'book deals',
-  'revenue', 'quota', 'prospect', 'prospecting', 'outbound',
-  'inbound', 'deal', 'pipeline', 'closing', 'closed',
-  'customer acquisition', 'sales rep', 'sales development',
-  'business development', 'account management', 'cold call',
-  'cold email', 'lead qualification', 'upsell', 'cross-sell',
-  'sales process', 'sales cycle', 'win rate', 'negotiate',
-  'demo', 'presentation', 'phone', 'calling', 'caller',
-  'dialer', 'consultative', 'clients', 'contracts',
-  'monthly recurring', 'ARR', 'MRR', 'commissions',
-  'affiliate', 'partner program',
+// Tight list for checking TITLE only — avoids false positives from business jargon
+const titleSalesKeywords = [
+  'sales', 'sell', 'selling', 'closer', 'setter', 'sdr', 'bdr',
+  'commission', 'lead generation', 'cold call', 'outbound',
+  'inbound', 'account executive', 'account manager',
+  'appointment setter', 'business development',
+  'high ticket', 'phone sales',
 ]
 
-function hasSalesAdjacent(title: string | null, rawText: string): boolean {
+// Broader list for deep-dive raw_text check — requires multiple matches to pass
+const rawSalesKeywords = [
+  'sales', 'sell', 'selling', 'sellers',
+  'commission', 'commissions', 'high ticket',
+  'income', 'closer', 'setter', 'appointment',
+  'outbound', 'inbound', 'prospect', 'prospecting',
+  'quota', 'pipeline', 'closing', 'upsell', 'cross-sell',
+  'cold call', 'cold email', 'cold outreach',
+  'lead generation', 'lead gen', 'generate leads',
+  'book deals', 'sales rep', 'sales development',
+  'business development', 'account management',
+  'sales cycle', 'sales process', 'win rate',
+  'customer acquisition', 'contracts',
+  'monthly recurring', 'ARR', 'MRR',
+  'uncapped', '100% commission', 'commission only',
+  'set appointments', 'appointment setting',
+  'partner program', 'affiliate',
+]
+
+function countSalesAdjacent(title: string | null, rawText: string): number {
   const text = [title ?? '', rawText].join(' ').toLowerCase()
-  for (const kw of salesAdjacentKeywords) {
-    if (text.includes(kw)) return true
+  let count = 0
+  for (const kw of rawSalesKeywords) {
+    if (text.includes(kw)) count++
   }
-  return false
+  return count
 }
 
 const employmentKeywords = [
@@ -294,10 +303,36 @@ function extractCompensation(text: string): string | null {
   return null
 }
 
+const nonSalesTitleKeywords = [
+  'product manager', 'project manager', 'program manager',
+  'engineering manager', 'software engineer', 'engineer',
+  'developer', 'designer', 'ux designer', 'ui designer',
+  'data scientist', 'data analyst', 'data engineer',
+  'operations manager', 'office manager', 'hr manager',
+  'hr generalist', 'recruiter', 'talent acquisition',
+  'accountant', 'financial analyst', 'marketing manager',
+  'content writer', 'copywriter', 'social media',
+  'chief of staff', 'executive assistant', 'admin assistant',
+  'customer support', 'customer service', 'support specialist',
+  'technical writer', 'graphic designer', 'video editor',
+  'it support', 'system admin', 'devops',
+  'quality assurance', 'qa engineer', 'test engineer',
+  'research analyst', 'business analyst', 'marketing analyst',
+  'supply chain', 'logistics', 'procurement',
+]
+
+function isNonSalesTitle(title: string | null): boolean {
+  if (!title) return false
+  const lower = title.toLowerCase()
+  return nonSalesTitleKeywords.some((kw) => lower.includes(kw))
+}
+
 export function tagJobs(jobs: JobPostInput[]): JobPostInput[] {
   const tagged: JobPostInput[] = []
 
   for (const job of jobs) {
+    if (isNonSalesTitle(job.title)) continue
+
     const classification = classifyJob(job.title, job.raw_text)
     const hasRole = !!classification.role_type
 
@@ -307,7 +342,9 @@ export function tagJobs(jobs: JobPostInput[]): JobPostInput[] {
 
       if (!hasIndustry) continue
 
-      if (!hasSalesAdjacent(job.title, job.raw_text)) continue
+      const titleLower = (job.title ?? '').toLowerCase()
+      const titleMatch = titleSalesKeywords.some((kw) => titleLower.includes(kw))
+      if (!titleMatch && countSalesAdjacent(job.title, job.raw_text) < 3) continue
     }
 
     const industries = classifyIndustries(job.title, job.raw_text)
