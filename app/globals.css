@@ -31,7 +31,7 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
+  --background: oklch(0.97 0.005 286);
   --foreground: oklch(0.141 0.005 285.823);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.141 0.005 285.823);
@@ -54,25 +54,122 @@
 }
 
 .dark {
-  --background: oklch(0.141 0.005 285.823);
+  --background: oklch(0.07 0.008 286);
   --foreground: oklch(0.985 0 0);
-  --card: oklch(0.21 0.006 285.885);
+  --card: oklch(0.141 0.005 285.823);
   --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.21 0.006 285.885);
+  --popover: oklch(0.141 0.005 285.823);
   --popover-foreground: oklch(0.985 0 0);
   --primary: oklch(0.685 0.255 262.881);
   --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.274 0.006 286.033);
+  --secondary: oklch(0.21 0.006 285.885);
   --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.274 0.006 286.033);
-  --muted-foreground: oklch(0.71 0.015 286.067);
-  --accent: oklch(0.274 0.006 286.033);
+  --muted: oklch(0.21 0.006 285.885);
+  --muted-foreground: oklch(0.55 0.015 286);
+  --accent: oklch(0.21 0.006 285.885);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.274 0.006 286.033);
-  --input: oklch(0.274 0.006 286.033);
+  --border: oklch(0.21 0.006 285.885);
+  --input: oklch(0.21 0.006 285.885);
   --ring: oklch(0.685 0.255 262.881);
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+}
+@keyframes enter-left {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+}
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+.animate-enter {
+  animation: enter 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.animate-enter-left {
+  animation: enter-left 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.animate-fade-in {
+  animation: fade-in 0.4s ease both;
+}
+.animate-glow-pulse {
+  animation: glow-pulse 4s ease-in-out infinite;
+}
+.animate-slide-down {
+  animation: slide-down 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.animate-scale-in {
+  animation: scale-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.delay-\[0ms\] { animation-delay: 0ms; }
+.delay-\[50ms\] { animation-delay: 50ms; }
+.delay-\[100ms\] { animation-delay: 100ms; }
+.delay-\[150ms\] { animation-delay: 150ms; }
+.delay-\[200ms\] { animation-delay: 200ms; }
+.delay-\[250ms\] { animation-delay: 250ms; }
+.delay-\[300ms\] { animation-delay: 300ms; }
+.delay-\[350ms\] { animation-delay: 350ms; }
+.delay-\[400ms\] { animation-delay: 400ms; }
+.delay-\[450ms\] { animation-delay: 450ms; }
+.delay-\[500ms\] { animation-delay: 500ms; }
+.delay-\[600ms\] { animation-delay: 600ms; }
+.delay-\[700ms\] { animation-delay: 700ms; }
+.delay-\[800ms\] { animation-delay: 800ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-enter,
+  .animate-enter-left,
+  .animate-fade-in,
+  .animate-slide-down,
+  .animate-scale-in {
+    animation: none;
+  }
+}
+
+@utility glass {
+  background: color-mix(in oklab, var(--card) 70%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid color-mix(in oklab, var(--border) 50%, transparent);
+}
+
+@utility glass-strong {
+  background: color-mix(in oklab, var(--card) 85%, transparent);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+}
+
+@utility glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
 }
 
 body {

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import { JobCard } from '@/components/job-card'
 import { PitchModal } from '@/components/pitch-modal'
+import { Nav } from '@/components/nav'
 import {
   Card,
   CardContent,
@@ -12,7 +13,6 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import type { JobPost, Profile, Application } from '@/lib/types/database'
 
 interface DashboardClientProps {
@@ -159,52 +159,42 @@ export function DashboardClient({
     generatePitchRef.current = null
   }, [])
 
-  return (
-    <div className="min-h-screen flex flex-col">
-      <header className="border-b bg-card">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className="font-semibold text-lg">Closer Job Hunter</h1>
-          <div className="flex items-center gap-3">
-            <Button variant="link" size="sm" asChild>
-              <a href="/profile">Profile</a>
-            </Button>
-            <Button variant="link" size="sm" asChild>
-              <a href="/applications">Applications</a>
-            </Button>
-            <Button variant="link" size="sm" asChild>
-              <a href="/leads">Add a lead</a>
-            </Button>
-            <Button
-              variant="link"
-              size="sm"
-              onClick={handleScoreMatches}
-              disabled={scoring}
-            >
-              {scoring ? 'Scoring...' : 'Score matches'}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRefreshJobs}
-              disabled={refreshing}
-            >
-              {refreshing ? 'Refreshing...' : 'Refresh jobs'}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleSignOut}
-              className="text-destructive hover:text-destructive"
-            >
-              Sign out
-            </Button>
-          </div>
-        </div>
-      </header>
+  const actionButtons = (
+    <>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={handleScoreMatches}
+        disabled={scoring}
+        className="text-xs"
+      >
+        {scoring ? 'Scoring...' : 'Score'}
+      </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={handleRefreshJobs}
+        disabled={refreshing}
+        className="text-xs"
+      >
+        {refreshing ? 'Refreshing...' : 'Refresh'}
+      </Button>
+    </>
+  )
 
-      <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-8">
+  return (
+    <div className="min-h-screen flex flex-col relative">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="glow w-[400px] h-[400px] -top-20 -left-20 bg-primary/5 dark:bg-primary/10" />
+        <div className="glow w-[300px] h-[300px] top-1/3 right-0 bg-purple-500/5 dark:bg-purple-500/10" />
+        <div className="glow w-[500px] h-[500px] -bottom-40 left-1/3 bg-cyan-500/5 dark:bg-cyan-500/8" />
+      </div>
+
+      <Nav actions={actionButtons} />
+
+      <main className="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 py-8 sm:py-12 relative">
         {error && (
-          <Card className="mb-6 border-destructive/50">
+          <Card className="mb-8 border-destructive/30">
             <CardContent className="p-4 text-sm text-destructive">
               {error}
               {error.includes('Missing environment variable') && (
@@ -221,8 +211,8 @@ export function DashboardClient({
         )}
 
         {!profile && !error && (
-          <Card className="mb-6 border-amber-500/50 bg-amber-50 dark:bg-amber-900/10">
-            <CardContent className="p-4 text-sm text-amber-700 dark:text-amber-300">
+          <Card className="mb-8 border-amber-500/20 bg-amber-500/5 dark:bg-amber-500/10 animate-fade-in">
+            <CardContent className="p-4 text-sm text-amber-600 dark:text-amber-400">
               Complete your{' '}
               <a
                 href="/profile"
@@ -236,33 +226,33 @@ export function DashboardClient({
         )}
 
         {Object.keys(matches).length > 0 && (
-          <Card className="mb-6 border-emerald-500/50 bg-emerald-50 dark:bg-emerald-900/10">
-            <CardContent className="p-4 text-sm text-emerald-700 dark:text-emerald-300">
-              Jobs ranked by match score. Click "Score matches" to re-score.
+          <Card className="mb-8 border-emerald-500/20 bg-emerald-500/5 dark:bg-emerald-500/10 animate-fade-in">
+            <CardContent className="p-4 text-sm text-emerald-600 dark:text-emerald-400">
+              Jobs ranked by match score. Click &quot;Score matches&quot; to re-score.
             </CardContent>
           </Card>
         )}
 
         {followUps.length > 0 && (
-          <Card className="mb-6 border-orange-500/50 bg-orange-50 dark:bg-orange-900/10">
+          <Card className="mb-8 border-orange-500/20 bg-orange-500/5 dark:bg-orange-500/10 animate-fade-in">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-orange-700 dark:text-orange-300">
+              <CardTitle className="text-sm text-orange-600 dark:text-orange-400">
                 Follow-ups due
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
+            <CardContent className="space-y-3">
               {followUps.map((app) => (
                 <div
                   key={app.id}
                   className="flex items-center justify-between"
                 >
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-orange-700 dark:text-orange-300 truncate">
+                    <p className="text-sm font-medium text-orange-600 dark:text-orange-400 truncate">
                       {app.pitch_text
                         ? app.pitch_text.slice(0, 60) + '...'
                         : 'Application'}
                     </p>
-                    <p className="text-xs text-orange-500 dark:text-orange-400">
+                    <p className="text-xs text-orange-500 dark:text-orange-500">
                       Follow up by:{' '}
                       {app.next_follow_up_at
                         ? new Date(
@@ -281,15 +271,15 @@ export function DashboardClient({
         )}
 
         {pitchError && (
-          <Card className="mb-6 border-destructive/50">
+          <Card className="mb-8 border-destructive/30 animate-fade-in">
             <CardContent className="p-4 text-sm text-destructive">
               {pitchError}
             </CardContent>
           </Card>
         )}
 
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold">Job Board</h2>
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-2xl font-semibold tracking-tight">Job Board</h2>
           {jobs.length > 0 && (
             <p className="text-sm text-muted-foreground">
               {jobs.length} jobs
@@ -298,22 +288,24 @@ export function DashboardClient({
         </div>
 
         {jobs.length === 0 && !error ? (
-          <div className="text-center py-16 text-muted-foreground">
+          <div className="text-center py-24 text-muted-foreground animate-fade-in">
+            <div className="text-5xl mb-4 opacity-20">/</div>
             <p className="text-lg font-medium">No jobs found</p>
-            <p className="text-sm mt-1 mb-4">
-              Click "Refresh jobs" to pull the latest listings.
+            <p className="text-sm mt-2 mb-6 max-w-xs mx-auto">
+              Set your Supabase environment variables in Vercel, then click below to seed the job board.
             </p>
             <Button onClick={handleRefreshJobs} disabled={refreshing}>
-              {refreshing ? 'Refreshing...' : 'Refresh jobs'}
+              {refreshing ? 'Refreshing...' : 'Seed job board'}
             </Button>
           </div>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {jobs.map((job) => (
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {jobs.map((job, i) => (
               <JobCard
                 key={job.id}
                 job={job}
                 matchScore={matches[job.id]}
+                index={i}
                 onGeneratePitch={handleGeneratePitch}
               />
             ))}

@@ -6,6 +6,7 @@ import { getSupabaseClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
+import { Nav } from '@/components/nav'
 
 export default function LeadsPage() {
   const router = useRouter()
@@ -56,45 +57,22 @@ export default function LeadsPage() {
     }
   }, [rawText, source, router])
 
-  const handleSignOut = useCallback(async () => {
-    try {
-      const supabase = getSupabaseClient()
-      await supabase.auth.signOut()
-      router.push('/login')
-      router.refresh()
-    } catch {
-      // silent
-    }
-  }, [router])
-
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="border-b bg-card">
-        <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className="font-semibold text-lg">Add a Lead</h1>
-          <div className="flex items-center gap-3">
-            <Button variant="link" size="sm" asChild>
-              <a href="/dashboard">Dashboard</a>
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleSignOut}
-              className="text-destructive hover:text-destructive"
-            >
-              Sign out
-            </Button>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen flex flex-col relative">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="glow w-[350px] h-[350px] top-0 right-0 bg-cyan-500/5 dark:bg-cyan-500/10" />
+        <div className="glow w-[400px] h-[400px] -bottom-40 -left-20 bg-primary/5 dark:bg-primary/10" />
+      </div>
 
-      <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-8">
-        <p className="text-sm text-muted-foreground mb-6">
+      <Nav />
+
+      <main className="flex-1 max-w-3xl mx-auto w-full px-4 sm:px-6 py-8 sm:py-12 relative">
+        <p className="text-sm text-muted-foreground mb-8 animate-enter">
           Paste a social media post from Instagram, X, Discord, or anywhere else
           that mentions a job opening. The AI will extract the details and add it to the job board.
         </p>
 
-        <Card>
+        <Card className="animate-enter">
           <CardHeader>
             <CardTitle>Extract from post</CardTitle>
           </CardHeader>
@@ -106,7 +84,7 @@ export default function LeadsPage() {
             )}
 
             {result && (
-              <div className="rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 p-4">
+              <div className="rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 p-4 animate-fade-in">
                 <h3 className="font-semibold text-sm mb-2 text-emerald-700 dark:text-emerald-300">
                   Extracted
                 </h3>

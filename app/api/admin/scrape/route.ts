@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
+import { createServerClient } from '@supabase/ssr'
 import { getServiceSupabase } from '@/lib/supabase/server'
 import { generateEmbedding } from '@/lib/ai/embeddings'
 
@@ -183,19 +184,25 @@ const SAMPLE_JOBS = [
 
 export async function POST(_request: NextRequest) {
   try {
-    const supabase = await getServiceSupabase()
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
-
-    if (authError || !user) {
+    if (!supabaseUrl || !supabaseAnonKey) {
       return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 },
+        { error: 'Missing Supabase environment variables. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in Vercel.' },
+        { status: 500 },
       )
     }
+
+    const supabase = serviceRoleKey
+      ? createServerClient(supabaseUrl, serviceRoleKey, {
+          cookies: {
+            getAll: () => Promise.resolve([]),
+            setAll: () => Promise.resolve(),
+          },
+        })
+      : await getServiceSupabase()
 
     let inserted = 0
     let skipped = 0
@@ -206,7 +213,7 @@ export async function POST(_request: NextRequest) {
         .select('id')
         .eq('company', job.company)
         .eq('title', job.title)
-        .single()
+        .maybeSingle()
 
       if (existing) {
         skipped++

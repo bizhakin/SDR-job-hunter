@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import { ApplicationTracker } from '@/components/application-tracker'
-import { Button } from '@/components/ui/button'
+import { Nav } from '@/components/nav'
 import type { Application } from '@/lib/types/database'
 
 export default function ApplicationsPage() {
@@ -124,17 +124,6 @@ export default function ApplicationsPage() {
     }
   }, [])
 
-  const handleSignOut = useCallback(async () => {
-    try {
-      const supabase = getSupabaseClient()
-      await supabase.auth.signOut()
-      router.push('/login')
-      router.refresh()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Sign out failed')
-    }
-  }, [router])
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -144,31 +133,16 @@ export default function ApplicationsPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="border-b bg-card">
-        <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className="font-semibold text-lg">Applications</h1>
-          <div className="flex items-center gap-3">
-            <Button variant="link" size="sm" asChild>
-              <a href="/dashboard">Dashboard</a>
-            </Button>
-            <Button variant="link" size="sm" asChild>
-              <a href="/profile">Profile</a>
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleSignOut}
-              className="text-destructive hover:text-destructive"
-            >
-              Sign out
-            </Button>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen flex flex-col relative">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="glow w-[400px] h-[400px] -top-20 -right-20 bg-primary/5 dark:bg-primary/10" />
+        <div className="glow w-[300px] h-[300px] bottom-0 left-0 bg-purple-500/5 dark:bg-purple-500/10" />
+      </div>
 
-      <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-8">
-        <h2 className="text-xl font-semibold mb-6">Application Tracker</h2>
+      <Nav />
+
+      <main className="flex-1 max-w-3xl mx-auto w-full px-4 sm:px-6 py-8 sm:py-12 relative">
+        <h2 className="text-2xl font-semibold tracking-tight mb-8">Application Tracker</h2>
 
         <ApplicationTracker
           applications={applications}

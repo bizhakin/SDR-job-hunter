@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Nav } from '@/components/nav'
 
 export default function ProfilePage() {
   const router = useRouter()
@@ -155,17 +156,6 @@ export default function ProfilePage() {
     [skillsInput, rolesInput, profile, router],
   )
 
-  const handleSignOut = useCallback(async () => {
-    try {
-      const supabase = getSupabaseClient()
-      await supabase.auth.signOut()
-      router.push('/login')
-      router.refresh()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Sign out failed')
-    }
-  }, [router])
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -175,28 +165,16 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="border-b bg-card">
-        <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className="font-semibold text-lg">Profile</h1>
-          <div className="flex items-center gap-3">
-            <Button variant="link" size="sm" asChild>
-              <a href="/dashboard">Dashboard</a>
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleSignOut}
-              className="text-destructive hover:text-destructive"
-            >
-              Sign out
-            </Button>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen flex flex-col relative">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="glow w-[400px] h-[400px] -top-20 -left-20 bg-primary/5 dark:bg-primary/10" />
+        <div className="glow w-[300px] h-[300px] top-1/2 right-0 bg-purple-500/5 dark:bg-purple-500/10" />
+      </div>
 
-      <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-8">
-        <Card>
+      <Nav />
+
+      <main className="flex-1 max-w-3xl mx-auto w-full px-4 sm:px-6 py-8 sm:py-12 relative">
+        <Card className="animate-enter">
           <CardHeader>
             <CardTitle>Your Profile</CardTitle>
           </CardHeader>
@@ -209,7 +187,7 @@ export default function ProfilePage() {
               )}
 
               {success && (
-                <div className="rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 p-3 text-sm text-emerald-700 dark:text-emerald-300">
+                <div className="rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 p-3 text-sm text-emerald-700 dark:text-emerald-300 animate-fade-in">
                   Profile saved successfully
                 </div>
               )}
@@ -259,7 +237,7 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
 
-        <Card className="mt-6">
+        <Card className="mt-6 animate-enter" style={{ animationDelay: '0.1s' }}>
           <CardHeader>
             <CardTitle>Email Integration</CardTitle>
           </CardHeader>
@@ -297,7 +275,7 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
 
-        <Card className="mt-6">
+        <Card className="mt-6 animate-enter" style={{ animationDelay: '0.2s' }}>
           <CardHeader>
             <CardTitle>Resume</CardTitle>
           </CardHeader>

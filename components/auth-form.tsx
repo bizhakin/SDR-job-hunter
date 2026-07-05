@@ -132,7 +132,7 @@ export function AuthForm({ redirectTo }: AuthFormProps) {
   }, [])
 
   return (
-    <Card className="w-full max-w-sm mx-auto">
+    <Card className="w-full max-w-sm mx-auto glass animate-scale-in">
       <CardHeader className="text-center">
         <CardTitle>
           {mode === 'signin' ? 'Sign In' : 'Create Account'}

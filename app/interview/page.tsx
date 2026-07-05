@@ -7,6 +7,7 @@ import { InterviewChat } from '@/components/interview-chat'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Nav } from '@/components/nav'
 
 interface ChatMessage {
   role: 'hiring_manager' | 'candidate'
@@ -69,7 +70,6 @@ function InterviewContent() {
 
       if (data) setPastSessions(data)
     } catch {
-      // non-critical
     }
   }
 
@@ -129,48 +129,25 @@ function InterviewContent() {
     setError(null)
   }, [])
 
-  const handleSignOut = useCallback(async () => {
-    try {
-      const supabase = getSupabaseClient()
-      await supabase.auth.signOut()
-      router.push('/login')
-      router.refresh()
-    } catch {
-      // silent
-    }
-  }, [router])
-
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="border-b bg-card">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className="font-semibold text-lg">Interview Practice</h1>
-          <div className="flex items-center gap-3">
-            <Button variant="link" size="sm" asChild>
-              <a href="/dashboard">Dashboard</a>
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleSignOut}
-              className="text-destructive hover:text-destructive"
-            >
-              Sign out
-            </Button>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen flex flex-col relative">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="glow w-[400px] h-[400px] -top-20 left-1/3 bg-primary/5 dark:bg-primary/10" />
+        <div className="glow w-[350px] h-[350px] -bottom-20 right-0 bg-purple-500/5 dark:bg-purple-500/10" />
+      </div>
 
-      <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-8 flex gap-8">
+      <Nav />
+
+      <main className="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 py-8 sm:py-12 relative flex gap-8">
         <div className="flex-1 flex flex-col">
           {!sessionId ? (
-            <div className="flex flex-col items-center justify-center py-16">
-              <h2 className="text-xl font-semibold mb-6">
+            <div className="flex flex-col items-center justify-center py-16 animate-fade-in">
+              <h2 className="text-2xl font-semibold tracking-tight mb-6">
                 {jobId ? 'Practice for this role' : 'Start a practice interview'}
               </h2>
 
               {error && (
-                <Card className="mb-6 border-destructive/50 w-full max-w-sm">
+                <Card className="mb-6 border-destructive/30 w-full max-w-sm">
                   <CardContent className="p-4 text-sm text-destructive">
                     {error}
                   </CardContent>
@@ -201,17 +178,17 @@ function InterviewContent() {
               </Card>
             </div>
           ) : scoreResult ? (
-            <div className="flex flex-col gap-6 py-8 max-w-lg mx-auto">
+            <div className="flex flex-col gap-6 py-8 max-w-lg mx-auto animate-fade-in">
               <div className="text-center">
                 <h2 className="text-2xl font-bold mb-1">
                   Score: {scoreResult.score}/100
                 </h2>
                 <p className="text-sm text-muted-foreground">
                   {scoreResult.score >= 80
-                    ? 'Excellent — ready for real interviews'
+                    ? 'Excellent'
                     : scoreResult.score >= 60
-                      ? 'Good — keep practicing the rough spots'
-                      : 'Needs work — focus on the weak areas below'}
+                      ? 'Good'
+                      : 'Needs work'}
                 </p>
               </div>
 

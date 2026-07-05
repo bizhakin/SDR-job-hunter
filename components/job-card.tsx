@@ -9,10 +9,11 @@ import { Button } from '@/components/ui/button'
 interface JobCardProps {
   job: JobPost
   matchScore?: number
+  index?: number
   onGeneratePitch: (job: JobPost) => void
 }
 
-export function JobCard({ job, matchScore, onGeneratePitch }: JobCardProps) {
+export function JobCard({ job, matchScore, index = 0, onGeneratePitch }: JobCardProps) {
   const [pitching, setPitching] = useState(false)
 
   const handlePitch = useCallback(() => {
@@ -25,7 +26,10 @@ export function JobCard({ job, matchScore, onGeneratePitch }: JobCardProps) {
     : null
 
   return (
-    <Card className="flex flex-col">
+    <Card
+      className="flex flex-col animate-enter"
+      style={{ animationDelay: `${index * 0.05}s` }}
+    >
       <CardContent className="p-4 flex flex-col gap-3 flex-1">
         <div className="flex items-start justify-between gap-2">
           <div className="flex flex-col min-w-0">
