@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { Suspense, useState, useCallback, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import { InterviewChat } from '@/components/interview-chat'
@@ -30,7 +30,7 @@ const ROLE_OPTIONS = [
   { value: 'bdr', label: 'BDR' },
 ]
 
-export default function InterviewPage() {
+function InterviewContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const jobId = searchParams.get('jobId')
@@ -45,9 +45,9 @@ export default function InterviewPage() {
     { id: string; score: number | null; created_at: string }[]
   >([])
 
-  useState(() => {
+  useEffect(() => {
     loadPastSessions()
-  })
+  }, [])
 
   async function loadPastSessions() {
     try {
@@ -315,5 +315,17 @@ export default function InterviewPage() {
         </aside>
       </main>
     </div>
+  )
+}
+
+export default function InterviewPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <InterviewContent />
+    </Suspense>
   )
 }
