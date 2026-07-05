@@ -4,6 +4,8 @@ import { fetchJobs as fetchWWR } from './wwr'
 import { fetchJobs as fetchGreenhouse } from './greenhouse'
 import { fetchJobs as fetchLever } from './lever'
 import { fetchJobs as fetchRemotive } from './remotive'
+import { fetchJobs as fetchIndeed } from './indeed'
+import { fetchJobs as fetchUpwork } from './upwork'
 import { tagJobs } from './tagger'
 import { createClient } from '@supabase/supabase-js'
 
@@ -42,6 +44,8 @@ export async function runAggregation(): Promise<AggregationResult> {
     ['greenhouse', fetchGreenhouse],
     ['lever', fetchLever],
     ['remotive', fetchRemotive],
+    ['indeed', fetchIndeed],
+    ['upwork', fetchUpwork],
   ]
 
   for (const [name, fetcher] of sources) {

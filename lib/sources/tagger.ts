@@ -56,6 +56,45 @@ const roleTypePriority: (keyof typeof keywordTaxonomy)[] = [
   'other',
 ]
 
+const employmentKeywords = [
+  '1099',
+  'independent contractor',
+  'contract position',
+  'contract role',
+  'freelance',
+  'freelancer',
+  'w-9',
+  'w9',
+  'commission only',
+  '100% commission',
+  'uncapped commission',
+  'contract-to-hire',
+  'project based',
+  'self employed',
+  'self-employed',
+  'contractor',
+]
+
+function detectEmploymentType(
+  title: string | null,
+  rawText: string,
+  source: string,
+): string[] {
+  if (source === 'upwork') return ['employment:1099']
+
+  const searchText = [title ?? '', rawText].join(' ').toLowerCase()
+  const types: string[] = []
+
+  for (const kw of employmentKeywords) {
+    if (searchText.includes(kw.toLowerCase())) {
+      types.push('employment:1099')
+      break
+    }
+  }
+
+  return types
+}
+
 const industryTaxonomy: Record<string, string[]> = {
   'coaching': [
     'coaching', 'coach', 'life coach', 'business coach', 'sales coach',
@@ -216,10 +255,12 @@ export function tagJobs(jobs: JobPostInput[]): JobPostInput[] {
     const industries = classifyIndustries(job.title, job.raw_text)
     const industryTags = industries.map((ind) => `industry:${ind}`)
 
+    const employmentTypes = detectEmploymentType(job.title, job.raw_text, job.source)
+
     tagged.push({
       ...job,
       role_type: classification.role_type,
-      tags: [...new Set([...job.tags, ...classification.matchedTags, ...industryTags])],
+      tags: [...new Set([...job.tags, ...classification.matchedTags, ...industryTags, ...employmentTypes])],
       comp_structure: comp,
     })
   }

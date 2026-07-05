@@ -149,6 +149,8 @@ export function JobCard({
     ? job.role_type.charAt(0).toUpperCase() + job.role_type.slice(1)
     : null
 
+  const is1099 = (job.tags || []).some((t) => t === 'employment:1099')
+
   const isFresh = dateLabel
     ? ['Today', 'Yesterday', '1d ago', '2d ago', '3d ago', '4d ago', '5d ago', '6d ago'].includes(dateLabel)
     : false
@@ -179,6 +181,11 @@ export function JobCard({
             {roleTypeBadge && (
               <Badge variant="outline" className="shrink-0 text-xs">
                 {roleTypeBadge}
+              </Badge>
+            )}
+            {is1099 && (
+              <Badge className="shrink-0 text-xs bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30 hover:bg-amber-500/30">
+                1099
               </Badge>
             )}
             <button

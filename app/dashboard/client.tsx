@@ -153,6 +153,7 @@ export function DashboardClient({
   const [dateRange, setDateRange] = useState<DateFilter>('any')
   const [compFilter, setCompFilter] = useState<CompFilter>('any')
   const [locationSearch, setLocationSearch] = useState('')
+  const [only1099, setOnly1099] = useState(false)
   const [onlyRemote, setOnlyRemote] = useState(false)
   const [onlySaved, setOnlySaved] = useState(false)
 
@@ -259,6 +260,7 @@ export function DashboardClient({
     setDateRange('any')
     setCompFilter('any')
     setLocationSearch('')
+    setOnly1099(false)
     setOnlyRemote(false)
     setOnlySaved(false)
     setSort('date')
@@ -271,6 +273,7 @@ export function DashboardClient({
     if (industryFilter.length > 0) count++
     if (dateRange !== 'any') count++
     if (compFilter !== 'any') count++
+    if (only1099) count++
     if (onlyRemote) count++
     if (onlySaved) count++
     if (search) count++
@@ -319,6 +322,10 @@ export function DashboardClient({
           (job.raw_text || '').toLowerCase().includes(q) ||
           (job.title || '').toLowerCase().includes(q),
       )
+    }
+
+    if (only1099) {
+      result = result.filter((job) => (job.tags || []).some((t) => t === 'employment:1099'))
     }
 
     if (onlyRemote) {
@@ -444,6 +451,18 @@ export function DashboardClient({
           )}
         >
           Saved
+        </button>
+
+        <button
+          onClick={() => { setOnly1099(!only1099); setPage(0) }}
+          className={cn(
+            'px-3 py-1 rounded-full text-xs font-medium transition-colors',
+            only1099
+              ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30'
+              : 'bg-muted text-muted-foreground hover:bg-muted/80',
+          )}
+        >
+          1099
         </button>
 
         <Select value={dateRange} onValueChange={(v) => { setDateRange(v as DateFilter); setPage(0) }}>
@@ -782,6 +801,17 @@ export function DashboardClient({
                     )}
                   >
                     Saved only
+                  </button>
+                  <button
+                    onClick={() => { setOnly1099(!only1099); setPage(0) }}
+                    className={cn(
+                      'px-4 py-2 rounded-full text-sm font-medium transition-colors',
+                      only1099
+                        ? 'bg-amber-500/20 text-amber-600 border border-amber-500/30'
+                        : 'bg-muted text-muted-foreground',
+                    )}
+                  >
+                    1099 / Contractor
                   </button>
                 </div>
               </div>
