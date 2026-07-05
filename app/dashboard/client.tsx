@@ -1,26 +1,41 @@
 'use client'
 
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import { JobCard } from '@/components/job-card'
 import { PitchModal } from '@/components/pitch-modal'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import type { JobPost, Profile, Application } from '@/lib/types/database'
 
 interface DashboardClientProps {
   jobs: JobPost[]
   profile: Profile | null
   matches: Record<string, number>
+  followUps: Application[]
   error: string | null
 }
 
-export function DashboardClient({ jobs, profile, matches, error }: DashboardClientProps) {
+export function DashboardClient({
+  jobs,
+  profile,
+  matches,
+  followUps,
+  error,
+}: DashboardClientProps) {
   const router = useRouter()
   const [pitchJob, setPitchJob] = useState<JobPost | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [pitchError, setPitchError] = useState<string | null>(null)
   const [scoring, setScoring] = useState(false)
-  const [followUps, setFollowUps] = useState<Application[]>([])
+  const [refreshing, setRefreshing] = useState(false)
 
   const handleScoreMatches = useCallback(async () => {
     setScoring(true)
@@ -39,6 +54,26 @@ export function DashboardClient({ jobs, profile, matches, error }: DashboardClie
       setPitchError(message)
     } finally {
       setScoring(false)
+    }
+  }, [router])
+
+  const handleRefreshJobs = useCallback(async () => {
+    setRefreshing(true)
+    setPitchError(null)
+    try {
+      const response = await fetch('/api/admin/scrape', {
+        method: 'POST',
+      })
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.error || 'Refresh failed')
+      }
+      router.refresh()
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to refresh jobs'
+      setPitchError(message)
+    } finally {
+      setRefreshing(false)
     }
   }, [router])
 
@@ -87,6 +122,7 @@ export function DashboardClient({ jobs, profile, matches, error }: DashboardClie
         }
 
         generatePitchRef.current = data.pitch
+        ;(window as unknown as Record<string, string | null>).__pitchText = data.pitch
         setPitchError(null)
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Pitch generation failed'
@@ -117,35 +153,6 @@ export function DashboardClient({ jobs, profile, matches, error }: DashboardClie
     [pitchJob, router],
   )
 
-  useEffect(() => {
-    async function loadFollowUps() {
-      try {
-        const supabase = getSupabaseClient()
-        const {
-          data: { user },
-        } = await supabase.auth.getUser()
-        if (!user) return
-
-        const today = new Date().toISOString().split('T')[0]
-        const { data } = await supabase
-          .from('applications')
-          .select('*')
-          .eq('user_id', user.id)
-          .not('next_follow_up_at', 'is', null)
-          .lte('next_follow_up_at', `${today}T23:59:59.999Z`)
-          .neq('status', 'rejected')
-          .neq('status', 'offer')
-          .order('next_follow_up_at', { ascending: true })
-
-        if (data) setFollowUps(data as Application[])
-      } catch {
-        // silent — non-critical section
-      }
-    }
-
-    loadFollowUps()
-  }, [])
-
   const handleCloseModal = useCallback(() => {
     setModalOpen(false)
     setPitchJob(null)
@@ -154,63 +161,103 @@ export function DashboardClient({ jobs, profile, matches, error }: DashboardClie
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="border-b border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800">
+      <header className="border-b bg-card">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           <h1 className="font-semibold text-lg">Closer Job Hunter</h1>
           <div className="flex items-center gap-3">
-            <a
-              href="/profile"
-              className="text-sm text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
-            >
-              Profile
-            </a>
-            <a
-              href="/applications"
-              className="text-sm text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
-            >
-              Applications
-            </a>
-            <a
-              href="/leads"
-              className="text-sm text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
-            >
-              Add a lead
-            </a>
-            <button
-              type="button"
+            <Button variant="link" size="sm" asChild>
+              <a href="/profile">Profile</a>
+            </Button>
+            <Button variant="link" size="sm" asChild>
+              <a href="/applications">Applications</a>
+            </Button>
+            <Button variant="link" size="sm" asChild>
+              <a href="/leads">Add a lead</a>
+            </Button>
+            <Button
+              variant="link"
+              size="sm"
               onClick={handleScoreMatches}
               disabled={scoring}
-              className="text-sm text-blue-500 hover:text-blue-700 dark:hover:text-blue-400 transition-colors disabled:opacity-50"
             >
               {scoring ? 'Scoring...' : 'Score matches'}
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRefreshJobs}
+              disabled={refreshing}
+            >
+              {refreshing ? 'Refreshing...' : 'Refresh jobs'}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={handleSignOut}
-              className="text-sm text-red-500 hover:text-red-700 dark:hover:text-red-400 transition-colors"
+              className="text-destructive hover:text-destructive"
             >
               Sign out
-            </button>
+            </Button>
           </div>
         </div>
       </header>
 
       <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-8">
+        {error && (
+          <Card className="mb-6 border-destructive/50">
+            <CardContent className="p-4 text-sm text-destructive">
+              {error}
+              {error.includes('Missing environment variable') && (
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Set up your{' '}
+                  <code className="bg-muted rounded px-1">
+                    .env.local
+                  </code>{' '}
+                  file with Supabase credentials.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {!profile && !error && (
+          <Card className="mb-6 border-amber-500/50 bg-amber-50 dark:bg-amber-900/10">
+            <CardContent className="p-4 text-sm text-amber-700 dark:text-amber-300">
+              Complete your{' '}
+              <a
+                href="/profile"
+                className="underline font-medium"
+              >
+                profile
+              </a>{' '}
+              to get better AI-generated pitches.
+            </CardContent>
+          </Card>
+        )}
+
+        {Object.keys(matches).length > 0 && (
+          <Card className="mb-6 border-emerald-500/50 bg-emerald-50 dark:bg-emerald-900/10">
+            <CardContent className="p-4 text-sm text-emerald-700 dark:text-emerald-300">
+              Jobs ranked by match score. Click "Score matches" to re-score.
+            </CardContent>
+          </Card>
+        )}
+
         {followUps.length > 0 && (
-          <div className="mb-6 rounded-lg border border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-900/20">
-            <div className="p-4 border-b border-orange-200 dark:border-orange-800">
-              <h3 className="font-semibold text-sm text-orange-700 dark:text-orange-300">
+          <Card className="mb-6 border-orange-500/50 bg-orange-50 dark:bg-orange-900/10">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm text-orange-700 dark:text-orange-300">
                 Follow-ups due
-              </h3>
-            </div>
-            <div className="divide-y divide-orange-200 dark:divide-orange-800">
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
               {followUps.map((app) => (
                 <div
                   key={app.id}
-                  className="p-3 flex items-center justify-between"
+                  className="flex items-center justify-between"
                 >
-                  <div>
-                    <p className="text-sm font-medium text-orange-700 dark:text-orange-300">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-orange-700 dark:text-orange-300 truncate">
                       {app.pitch_text
                         ? app.pitch_text.slice(0, 60) + '...'
                         : 'Application'}
@@ -224,66 +271,41 @@ export function DashboardClient({ jobs, profile, matches, error }: DashboardClie
                         : 'N/A'}
                     </p>
                   </div>
-                  <a
-                    href="/applications"
-                    className="text-xs font-medium text-orange-600 hover:text-orange-800 dark:text-orange-400 dark:hover:text-orange-200"
-                  >
-                    View
-                  </a>
+                  <Button variant="link" size="sm" asChild>
+                    <a href="/applications">View</a>
+                  </Button>
                 </div>
               ))}
-            </div>
-          </div>
-        )}
-
-        <h2 className="text-xl font-semibold mb-6">Job Board</h2>
-
-        {error && (
-          <div className="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4 mb-6 text-sm text-red-700 dark:text-red-300">
-            {error}
-            {error.includes('Missing environment variable') && (
-              <p className="mt-2 text-xs">
-                Set up your{' '}
-                <code className="bg-red-100 dark:bg-red-800 rounded px-1">
-                  .env.local
-                </code>{' '}
-                file with Supabase credentials.
-              </p>
-            )}
-          </div>
-        )}
-
-        {!profile && !error && (
-          <div className="rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 p-4 mb-6 text-sm text-yellow-700 dark:text-yellow-300">
-            Complete your{' '}
-            <a
-              href="/profile"
-              className="underline font-medium hover:text-yellow-800 dark:hover:text-yellow-200"
-            >
-              profile
-            </a>{' '}
-            to get better AI-generated pitches.
-          </div>
-        )}
-
-        {Object.keys(matches).length > 0 && (
-          <div className="rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 p-3 mb-6 text-sm text-green-700 dark:text-green-300">
-            Jobs ranked by match score. Click "Score matches" to re-score.
-          </div>
+            </CardContent>
+          </Card>
         )}
 
         {pitchError && (
-          <div className="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4 mb-6 text-sm text-red-700 dark:text-red-300">
-            {pitchError}
-          </div>
+          <Card className="mb-6 border-destructive/50">
+            <CardContent className="p-4 text-sm text-destructive">
+              {pitchError}
+            </CardContent>
+          </Card>
         )}
 
-        {jobs.length === 0 && !error ? (
-          <div className="text-center py-16 text-zinc-500 dark:text-zinc-400">
-            <p className="text-lg font-medium">No jobs found</p>
-            <p className="text-sm mt-1">
-              Jobs will appear here once the aggregation worker starts pulling listings.
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold">Job Board</h2>
+          {jobs.length > 0 && (
+            <p className="text-sm text-muted-foreground">
+              {jobs.length} jobs
             </p>
+          )}
+        </div>
+
+        {jobs.length === 0 && !error ? (
+          <div className="text-center py-16 text-muted-foreground">
+            <p className="text-lg font-medium">No jobs found</p>
+            <p className="text-sm mt-1 mb-4">
+              Click "Refresh jobs" to pull the latest listings.
+            </p>
+            <Button onClick={handleRefreshJobs} disabled={refreshing}>
+              {refreshing ? 'Refreshing...' : 'Refresh jobs'}
+            </Button>
           </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

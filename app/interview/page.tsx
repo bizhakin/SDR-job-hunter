@@ -4,6 +4,9 @@ import { Suspense, useState, useCallback, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import { InterviewChat } from '@/components/interview-chat'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 
 interface ChatMessage {
   role: 'hiring_manager' | 'candidate'
@@ -139,23 +142,21 @@ function InterviewContent() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="border-b border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800">
+      <header className="border-b bg-card">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           <h1 className="font-semibold text-lg">Interview Practice</h1>
           <div className="flex items-center gap-3">
-            <a
-              href="/dashboard"
-              className="text-sm text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
-            >
-              Dashboard
-            </a>
-            <button
-              type="button"
+            <Button variant="link" size="sm" asChild>
+              <a href="/dashboard">Dashboard</a>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={handleSignOut}
-              className="text-sm text-red-500 hover:text-red-700 dark:hover:text-red-400 transition-colors"
+              className="text-destructive hover:text-destructive"
             >
               Sign out
-            </button>
+            </Button>
           </div>
         </div>
       </header>
@@ -169,42 +170,43 @@ function InterviewContent() {
               </h2>
 
               {error && (
-                <div className="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3 mb-6 text-sm text-red-700 dark:text-red-300 max-w-md w-full">
-                  {error}
-                </div>
+                <Card className="mb-6 border-destructive/50 w-full max-w-sm">
+                  <CardContent className="p-4 text-sm text-destructive">
+                    {error}
+                  </CardContent>
+                </Card>
               )}
 
-              <div className="flex flex-col gap-4 max-w-sm w-full">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-medium">Role type</label>
-                  <select
-                    value={roleType}
-                    onChange={(e) => setRoleType(e.target.value)}
-                    className="rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 px-3 py-2.5 text-sm"
-                  >
-                    {ROLE_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              <Card className="w-full max-w-sm">
+                <CardContent className="p-6 flex flex-col gap-4">
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-medium">Role type</label>
+                    <select
+                      value={roleType}
+                      onChange={(e) => setRoleType(e.target.value)}
+                      className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    >
+                      {ROLE_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-                <button
-                  type="button"
-                  onClick={handleStart}
-                  disabled={loading}
-                  className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loading ? 'Starting...' : 'Start Interview'}
-                </button>
-              </div>
+                  <Button onClick={handleStart} disabled={loading}>
+                    {loading ? 'Starting...' : 'Start Interview'}
+                  </Button>
+                </CardContent>
+              </Card>
             </div>
           ) : scoreResult ? (
-            <div className="flex flex-col gap-6 py-8">
+            <div className="flex flex-col gap-6 py-8 max-w-lg mx-auto">
               <div className="text-center">
-                <h2 className="text-2xl font-bold mb-1">Score: {scoreResult.score}/100</h2>
-                <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                <h2 className="text-2xl font-bold mb-1">
+                  Score: {scoreResult.score}/100
+                </h2>
+                <p className="text-sm text-muted-foreground">
                   {scoreResult.score >= 80
                     ? 'Excellent — ready for real interviews'
                     : scoreResult.score >= 60
@@ -222,60 +224,58 @@ function InterviewContent() {
                     ['Composure', scoreResult.breakdown.composure],
                   ] as const
                 ).map(([label, value]) => (
-                  <div
-                    key={label}
-                    className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-4"
-                  >
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">{label}</p>
-                    <p className="text-lg font-semibold">{value}/25</p>
-                    <div className="mt-1 h-1.5 rounded-full bg-zinc-200 dark:bg-zinc-700">
-                      <div
-                        className="h-1.5 rounded-full bg-blue-600 transition-all"
-                        style={{ width: `${(value / 25) * 100}%` }}
-                      />
-                    </div>
-                  </div>
+                  <Card key={label}>
+                    <CardContent className="p-4">
+                      <p className="text-xs text-muted-foreground mb-1">{label}</p>
+                      <p className="text-lg font-semibold">{value}/25</p>
+                      <div className="mt-1 h-1.5 rounded-full bg-muted">
+                        <div
+                          className="h-1.5 rounded-full bg-primary transition-all"
+                          style={{ width: `${(value / 25) * 100}%` }}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
 
-              <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-4">
-                <h3 className="font-semibold text-sm mb-2">Strengths</h3>
-                <p className="text-sm text-zinc-600 dark:text-zinc-300">{scoreResult.strengths}</p>
-              </div>
+              <Card>
+                <CardContent className="p-4">
+                  <h3 className="font-semibold text-sm mb-2">Strengths</h3>
+                  <p className="text-sm text-muted-foreground">{scoreResult.strengths}</p>
+                </CardContent>
+              </Card>
 
-              <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-4">
-                <h3 className="font-semibold text-sm mb-2">Areas to improve</h3>
-                <p className="text-sm text-zinc-600 dark:text-zinc-300">{scoreResult.weaknesses}</p>
-              </div>
+              <Card>
+                <CardContent className="p-4">
+                  <h3 className="font-semibold text-sm mb-2">Areas to improve</h3>
+                  <p className="text-sm text-muted-foreground">{scoreResult.weaknesses}</p>
+                </CardContent>
+              </Card>
 
               {scoreResult.objections_drilled.length > 0 && (
-                <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-4">
-                  <h3 className="font-semibold text-sm mb-2">Objections drilled</h3>
-                  <div className="flex flex-wrap gap-1.5">
-                    {scoreResult.objections_drilled.map((obj) => (
-                      <span
-                        key={obj}
-                        className="rounded-md bg-zinc-100 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300 text-xs px-2 py-0.5"
-                      >
-                        {obj}
-                      </span>
-                    ))}
-                  </div>
-                </div>
+                <Card>
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold text-sm mb-2">Objections drilled</h3>
+                    <div className="flex flex-wrap gap-1.5">
+                      {scoreResult.objections_drilled.map((obj) => (
+                        <Badge key={obj} variant="secondary">
+                          {obj}
+                        </Badge>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
               )}
 
-              <button
-                type="button"
-                onClick={handleNewSession}
-                className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 text-sm transition-colors"
-              >
+              <Button onClick={handleNewSession}>
                 Practice again
-              </button>
+              </Button>
             </div>
           ) : (
-            <div className="flex-1 flex flex-col">
-              <div className="border-b border-zinc-200 dark:border-zinc-700 px-4 py-2 flex items-center justify-between">
-                <span className="text-xs text-zinc-400 uppercase tracking-wide font-medium">
+            <Card className="flex-1 flex flex-col">
+              <div className="border-b px-4 py-2 flex items-center justify-between">
+                <span className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
                   Live Session — {roleType} interview
                 </span>
               </div>
@@ -285,30 +285,29 @@ function InterviewContent() {
                 onScore={handleScore}
                 onError={handleError}
               />
-            </div>
+            </Card>
           )}
         </div>
 
-        <aside className="hidden lg:flex flex-col w-72 shrink-0">
-          <h3 className="text-sm font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide mb-3">
+        <aside className="hidden lg:flex flex-col w-64 shrink-0">
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
             Past sessions
           </h3>
           {pastSessions.length === 0 ? (
-            <p className="text-sm text-zinc-400">No past sessions yet.</p>
+            <p className="text-sm text-muted-foreground">No past sessions yet.</p>
           ) : (
             <div className="flex flex-col gap-2">
               {pastSessions.map((s) => (
-                <div
-                  key={s.id}
-                  className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-3"
-                >
-                  <p className="text-sm font-medium">
-                    {s.score !== null ? `${s.score}/100` : 'Not scored'}
-                  </p>
-                  <p className="text-xs text-zinc-400">
-                    {new Date(s.created_at).toLocaleDateString()}
-                  </p>
-                </div>
+                <Card key={s.id}>
+                  <CardContent className="p-3">
+                    <p className="text-sm font-medium">
+                      {s.score !== null ? `${s.score}/100` : 'Not scored'}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(s.created_at).toLocaleDateString()}
+                    </p>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           )}
@@ -322,7 +321,7 @@ export default function InterviewPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     }>
       <InterviewContent />

@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSupabaseClient } from '@/lib/supabase/client'
 import { ApplicationTracker } from '@/components/application-tracker'
+import { Button } from '@/components/ui/button'
 import type { Application } from '@/lib/types/database'
 
 export default function ApplicationsPage() {
@@ -73,6 +74,25 @@ export default function ApplicationsPage() {
     [],
   )
 
+  const handleDelete = useCallback(async (id: string) => {
+    setError(null)
+    try {
+      const supabase = getSupabaseClient()
+      const { error: deleteError } = await supabase
+        .from('applications')
+        .delete()
+        .eq('id', id)
+
+      if (deleteError) {
+        throw new Error(deleteError.message)
+      }
+
+      setApplications((prev) => prev.filter((app) => app.id !== id))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete application')
+    }
+  }, [])
+
   const handleSetFollowUp = useCallback(async (id: string, date: string) => {
     setError(null)
     try {
@@ -104,25 +124,6 @@ export default function ApplicationsPage() {
     }
   }, [])
 
-  const handleDelete = useCallback(async (id: string) => {
-    setError(null)
-    try {
-      const supabase = getSupabaseClient()
-      const { error: deleteError } = await supabase
-        .from('applications')
-        .delete()
-        .eq('id', id)
-
-      if (deleteError) {
-        throw new Error(deleteError.message)
-      }
-
-      setApplications((prev) => prev.filter((app) => app.id !== id))
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete application')
-    }
-  }, [])
-
   const handleSignOut = useCallback(async () => {
     try {
       const supabase = getSupabaseClient()
@@ -137,36 +138,31 @@ export default function ApplicationsPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="border-b border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800">
+      <header className="border-b bg-card">
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
           <h1 className="font-semibold text-lg">Applications</h1>
           <div className="flex items-center gap-3">
-            <a
-              href="/dashboard"
-              className="text-sm text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
-            >
-              Dashboard
-            </a>
-            <a
-              href="/profile"
-              className="text-sm text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
-            >
-              Profile
-            </a>
-            <button
-              type="button"
+            <Button variant="link" size="sm" asChild>
+              <a href="/dashboard">Dashboard</a>
+            </Button>
+            <Button variant="link" size="sm" asChild>
+              <a href="/profile">Profile</a>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={handleSignOut}
-              className="text-sm text-red-500 hover:text-red-700 dark:hover:text-red-400 transition-colors"
+              className="text-destructive hover:text-destructive"
             >
               Sign out
-            </button>
+            </Button>
           </div>
         </div>
       </header>

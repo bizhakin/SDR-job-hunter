@@ -1,6 +1,9 @@
 'use client'
 
 import { useState, useCallback, useRef, useEffect } from 'react'
+import { Card } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 interface ChatMessage {
   role: 'hiring_manager' | 'candidate'
@@ -122,8 +125,8 @@ export function InterviewChat({
             <div
               className={`max-w-[80%] rounded-xl px-4 py-2.5 text-sm leading-relaxed ${
                 msg.role === 'candidate'
-                  ? 'bg-blue-600 text-white rounded-br-sm'
-                  : 'bg-zinc-100 dark:bg-zinc-700 text-zinc-800 dark:text-zinc-200 rounded-bl-sm'
+                  ? 'bg-primary text-primary-foreground rounded-br-sm'
+                  : 'bg-muted text-foreground rounded-bl-sm'
               }`}
             >
               {msg.content}
@@ -132,7 +135,7 @@ export function InterviewChat({
         ))}
         {sending && (
           <div className="flex justify-start">
-            <div className="rounded-xl bg-zinc-100 dark:bg-zinc-700 px-4 py-2.5 text-sm text-zinc-400 italic">
+            <div className="rounded-xl bg-muted px-4 py-2.5 text-sm text-muted-foreground italic">
               Thinking...
             </div>
           </div>
@@ -140,32 +143,29 @@ export function InterviewChat({
         <div ref={bottomRef} />
       </div>
 
-      <div className="border-t border-zinc-200 dark:border-zinc-700 p-4 flex gap-2">
-        <input
+      <div className="border-t p-4 flex gap-2">
+        <Input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Type your answer..."
           disabled={sending || scoring}
-          className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 px-3 py-2.5 text-sm disabled:opacity-50"
+          className="flex-1"
         />
-        <button
-          type="button"
+        <Button
           onClick={handleSend}
           disabled={!input.trim() || sending || scoring}
-          className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Send
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          variant="secondary"
           onClick={handleScore}
           disabled={scoring || sending || messages.length < 2}
-          className="rounded-lg bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {scoring ? 'Scoring...' : 'End & Score'}
-        </button>
+        </Button>
       </div>
     </div>
   )

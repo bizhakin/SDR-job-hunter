@@ -3,6 +3,10 @@
 import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSupabaseClient } from '@/lib/supabase/client'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 type AuthMode = 'signin' | 'signup'
 
@@ -128,98 +132,93 @@ export function AuthForm({ redirectTo }: AuthFormProps) {
   }, [])
 
   return (
-    <div className="w-full max-w-sm mx-auto">
-      <form onSubmit={handleEmailAuth} className="flex flex-col gap-4">
-        <h2 className="text-2xl font-semibold text-center">
+    <Card className="w-full max-w-sm mx-auto">
+      <CardHeader className="text-center">
+        <CardTitle>
           {mode === 'signin' ? 'Sign In' : 'Create Account'}
-        </h2>
-
-        {errors.general && (
-          <div className="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3 text-sm text-red-700 dark:text-red-300">
-            {errors.general}
-          </div>
-        )}
-
-        <div className="flex flex-col gap-1">
-          <label htmlFor="email" className="text-sm font-medium">
-            Email
-          </label>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-            placeholder="you@example.com"
-            disabled={loading}
-            autoComplete="email"
-          />
-          {errors.email && (
-            <p className="text-xs text-red-600 dark:text-red-400">{errors.email}</p>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleEmailAuth} className="flex flex-col gap-4">
+          {errors.general && (
+            <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-3 text-sm text-destructive">
+              {errors.general}
+            </div>
           )}
-        </div>
 
-        <div className="flex flex-col gap-1">
-          <label htmlFor="password" className="text-sm font-medium">
-            Password
-          </label>
-          <input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-            placeholder="At least 6 characters"
-            disabled={loading}
-            autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
-          />
-          {errors.password && (
-            <p className="text-xs text-red-600 dark:text-red-400">{errors.password}</p>
-          )}
-        </div>
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {loading
-            ? 'Please wait...'
-            : mode === 'signin'
-              ? 'Sign In'
-              : 'Create Account'}
-        </button>
-
-        <div className="relative my-2">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-zinc-300 dark:border-zinc-600" />
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              disabled={loading}
+              autoComplete="email"
+            />
+            {errors.email && (
+              <p className="text-xs text-destructive">{errors.email}</p>
+            )}
           </div>
-          <div className="relative flex justify-center text-xs">
-            <span className="bg-white dark:bg-zinc-900 px-2 text-zinc-500">
-              or continue with
-            </span>
+
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="At least 6 characters"
+              disabled={loading}
+              autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+            />
+            {errors.password && (
+              <p className="text-xs text-destructive">{errors.password}</p>
+            )}
           </div>
-        </div>
 
-        <button
-          type="button"
-          onClick={handleGoogleAuth}
-          disabled={googleLoading}
-          className="rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-700 font-medium py-2 px-4 text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {googleLoading ? 'Please wait...' : 'Google'}
-        </button>
+          <Button type="submit" disabled={loading} className="w-full">
+            {loading
+              ? 'Please wait...'
+              : mode === 'signin'
+                ? 'Sign In'
+                : 'Create Account'}
+          </Button>
 
-        <button
-          type="button"
-          onClick={toggleMode}
-          className="text-sm text-blue-600 dark:text-blue-400 hover:underline text-center"
-        >
-          {mode === 'signin'
-            ? "Don't have an account? Sign up"
-            : 'Already have an account? Sign in'}
-        </button>
-      </form>
-    </div>
+          <div className="relative my-1">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs">
+              <span className="bg-card px-2 text-muted-foreground">
+                or continue with
+              </span>
+            </div>
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleGoogleAuth}
+            disabled={googleLoading}
+            className="w-full"
+          >
+            {googleLoading ? 'Please wait...' : 'Google'}
+          </Button>
+
+          <Button
+            type="button"
+            variant="link"
+            onClick={toggleMode}
+            className="text-sm"
+          >
+            {mode === 'signin'
+              ? "Don't have an account? Sign up"
+              : 'Already have an account? Sign in'}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   )
 }

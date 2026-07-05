@@ -3,35 +3,31 @@
 import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSupabaseClient } from '@/lib/supabase/client'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
 
 export default function LeadsPage() {
   const router = useRouter()
   const [rawText, setRawText] = useState('')
-  const [sourcePlatform, setSourcePlatform] = useState('')
+  const [source, setSource] = useState('instagram')
   const [extracting, setExtracting] = useState(false)
-  const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [extracted, setExtracted] = useState<Record<string, unknown> | null>(null)
-  const [draftFields, setDraftFields] = useState<Record<string, unknown>>({})
+  const [result, setResult] = useState<Record<string, unknown> | null>(null)
 
   const handleExtract = useCallback(async () => {
-    if (!rawText.trim()) {
-      setError('Paste a post or message first')
-      return
-    }
+    if (!rawText.trim()) return
 
     setExtracting(true)
     setError(null)
-    setExtracted(null)
+    setResult(null)
 
     try {
       const supabase = getSupabaseClient()
       const {
         data: { user },
-        error: authError,
       } = await supabase.auth.getUser()
-
-      if (authError || !user) {
+      if (!user) {
         router.push('/login')
         return
       }
@@ -40,8 +36,8 @@ export default function LeadsPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          text: rawText,
-          sourcePlatform: sourcePlatform || null,
+          rawText: rawText.trim(),
+          sourcePlatform: source,
         }),
       })
 
@@ -51,66 +47,14 @@ export default function LeadsPage() {
         throw new Error(data.error || 'Extraction failed')
       }
 
-      setExtracted(data.extracted)
-      setDraftFields(data.draft)
+      setResult(data)
+      setRawText('')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Extraction failed')
+      setError(err instanceof Error ? err.message : 'Failed to extract lead')
     } finally {
       setExtracting(false)
     }
-  }, [rawText, sourcePlatform, router])
-
-  const handleFieldChange = useCallback(
-    (field: string, value: string | boolean) => {
-      setDraftFields((prev) => ({ ...prev, [field]: value }))
-    },
-    [],
-  )
-
-  const handleSave = useCallback(async () => {
-    setSaving(true)
-    setError(null)
-
-    try {
-      const supabase = getSupabaseClient()
-      const {
-        data: { user },
-        error: authError,
-      } = await supabase.auth.getUser()
-
-      if (authError || !user) {
-        router.push('/login')
-        return
-      }
-
-      const response = await fetch('/api/extract-lead', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          leadManualRawText: rawText,
-          sourcePlatform: sourcePlatform || null,
-          jobPost: draftFields,
-        }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Save failed')
-      }
-
-      setRawText('')
-      setSourcePlatform('')
-      setExtracted(null)
-      setDraftFields({})
-      router.push('/dashboard')
-      router.refresh()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Save failed')
-    } finally {
-      setSaving(false)
-    }
-  }, [rawText, sourcePlatform, draftFields, router])
+  }, [rawText, source, router])
 
   const handleSignOut = useCallback(async () => {
     try {
@@ -125,154 +69,85 @@ export default function LeadsPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="border-b border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800">
+      <header className="border-b bg-card">
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
           <h1 className="font-semibold text-lg">Add a Lead</h1>
           <div className="flex items-center gap-3">
-            <a
-              href="/dashboard"
-              className="text-sm text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
-            >
-              Dashboard
-            </a>
-            <button
-              type="button"
+            <Button variant="link" size="sm" asChild>
+              <a href="/dashboard">Dashboard</a>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={handleSignOut}
-              className="text-sm text-red-500 hover:text-red-700 dark:hover:text-red-400 transition-colors"
+              className="text-destructive hover:text-destructive"
             >
               Sign out
-            </button>
+            </Button>
           </div>
         </div>
       </header>
 
       <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-8">
-        <h2 className="text-xl font-semibold mb-2">Paste a lead</h2>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6">
-          Paste an Instagram post, X tweet, Discord message, or any text mentioning a job
-          opening. AI will extract the details.
+        <p className="text-sm text-muted-foreground mb-6">
+          Paste a social media post from Instagram, X, Discord, or anywhere else
+          that mentions a job opening. The AI will extract the details and add it to the job board.
         </p>
 
-        {error && (
-          <div className="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3 text-sm text-red-700 dark:text-red-300 mb-4">
-            {error}
-          </div>
-        )}
-
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1">
-            <label htmlFor="source" className="text-sm font-medium">
-              Source platform (optional)
-            </label>
-            <select
-              id="source"
-              value={sourcePlatform}
-              onChange={(e) => setSourcePlatform(e.target.value)}
-              className="rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Select platform...</option>
-              <option value="instagram">Instagram</option>
-              <option value="x">X / Twitter</option>
-              <option value="discord">Discord</option>
-              <option value="linkedin">LinkedIn</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label htmlFor="rawText" className="text-sm font-medium">
-              Post text
-            </label>
-            <textarea
-              id="rawText"
-              rows={8}
-              value={rawText}
-              onChange={(e) => setRawText(e.target.value)}
-              placeholder="Paste the full post text here..."
-              className="rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
-            />
-          </div>
-
-          <button
-            type="button"
-            onClick={handleExtract}
-            disabled={extracting || !rawText.trim()}
-            className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {extracting ? 'Extracting...' : 'Extract with AI'}
-          </button>
-
-          {extracted && (
-            <div className="rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-4 flex flex-col gap-3 mt-2">
-              <h3 className="font-semibold text-sm">Extracted Details</h3>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="flex flex-col gap-1">
-                  <label className="text-xs font-medium text-zinc-500">Company</label>
-                  <input
-                    type="text"
-                    value={(draftFields.company as string) || ''}
-                    onChange={(e) => handleFieldChange('company', e.target.value)}
-                    className="rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 px-2 py-1.5 text-sm"
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-xs font-medium text-zinc-500">Title</label>
-                  <input
-                    type="text"
-                    value={(draftFields.title as string) || ''}
-                    onChange={(e) => handleFieldChange('title', e.target.value)}
-                    className="rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 px-2 py-1.5 text-sm"
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-xs font-medium text-zinc-500">Role type</label>
-                  <select
-                    value={(draftFields.role_type as string) || ''}
-                    onChange={(e) => handleFieldChange('role_type', e.target.value)}
-                    className="rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 px-2 py-1.5 text-sm"
-                  >
-                    <option value="">Auto-detected</option>
-                    <option value="closer">Closer</option>
-                    <option value="setter">Setter</option>
-                    <option value="sdr">SDR</option>
-                    <option value="bdr">BDR</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-xs font-medium text-zinc-500">Compensation</label>
-                  <input
-                    type="text"
-                    value={(draftFields.comp_structure as string) || ''}
-                    onChange={(e) => handleFieldChange('comp_structure', e.target.value)}
-                    className="rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 px-2 py-1.5 text-sm"
-                  />
-                </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Extract from post</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-4">
+            {error && (
+              <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-3 text-sm text-destructive">
+                {error}
               </div>
+            )}
 
-              <div className="flex items-center gap-2">
-                <input
-                  id="remote"
-                  type="checkbox"
-                  checked={draftFields.remote === true}
-                  onChange={(e) => handleFieldChange('remote', e.target.checked)}
-                  className="rounded border-zinc-300 dark:border-zinc-600"
-                />
-                <label htmlFor="remote" className="text-sm">Remote</label>
+            {result && (
+              <div className="rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 p-4">
+                <h3 className="font-semibold text-sm mb-2 text-emerald-700 dark:text-emerald-300">
+                  Extracted
+                </h3>
+                <pre className="text-xs text-emerald-600 dark:text-emerald-400 whitespace-pre-wrap">
+                  {JSON.stringify(result, null, 2)}
+                </pre>
               </div>
+            )}
 
-              <button
-                type="button"
-                onClick={handleSave}
-                disabled={saving}
-                className="rounded-lg bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            <div className="flex flex-col gap-2">
+              <Label>Source platform</Label>
+              <select
+                value={source}
+                onChange={(e) => setSource(e.target.value)}
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               >
-                {saving ? 'Saving...' : 'Save to Job Board'}
-              </button>
+                <option value="instagram">Instagram</option>
+                <option value="x">X (Twitter)</option>
+                <option value="discord">Discord</option>
+                <option value="other">Other</option>
+              </select>
             </div>
-          )}
-        </div>
+
+            <div className="flex flex-col gap-2">
+              <Label>Post content</Label>
+              <textarea
+                value={rawText}
+                onChange={(e) => setRawText(e.target.value)}
+                placeholder="Paste the full post text here..."
+                className="flex min-h-[200px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              />
+            </div>
+
+            <Button
+              onClick={handleExtract}
+              disabled={!rawText.trim() || extracting}
+            >
+              {extracting ? 'Extracting...' : 'Extract Lead'}
+            </Button>
+          </CardContent>
+        </Card>
       </main>
     </div>
   )
