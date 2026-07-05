@@ -103,7 +103,7 @@ export async function runAggregation(): Promise<AggregationResult> {
   try {
     const { error } = await supabase.from('job_posts').upsert(newJobs, {
       onConflict: 'source_url',
-      ignoreDuplicates: true,
+      ignoreDuplicates: false,
     })
 
     if (error) {
