@@ -106,6 +106,12 @@
     transform: scale(0.95);
   }
 }
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+}
 
 .animate-enter {
   animation: enter 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -124,6 +130,9 @@
 }
 .animate-scale-in {
   animation: scale-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.animate-slide-up {
+  animation: slide-up 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .delay-\[0ms\] { animation-delay: 0ms; }
@@ -146,7 +155,8 @@
   .animate-enter-left,
   .animate-fade-in,
   .animate-slide-down,
-  .animate-scale-in {
+  .animate-scale-in,
+  .animate-slide-up {
     animation: none;
   }
 }
