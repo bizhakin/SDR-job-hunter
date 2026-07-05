@@ -36,15 +36,32 @@ const keywordTaxonomy: Record<string, string[]> = {
     'high ticket',
     'remote sales',
     'sales representative',
-    'account executive',
-    'ae',
+    'sales rep',
+    'sales agent',
+    'sales associate',
+    'sales manager',
+    'sales director',
     'sales consultant',
     'sales specialist',
+    'sales development',
     'inside sales',
+    'outside sales',
+    'account executive',
+    'account manager',
+    'ae',
+    'am account',
+    'key account',
+    'lead generation',
+    'lead gen',
+    'phone sales',
+    'cold caller',
+    'sales position',
+    'sales role',
     'commission only',
     '100% commission',
     'uncapped commission',
-    'sales development',
+    'closer',
+    'setter',
   ],
 }
 
@@ -57,42 +74,22 @@ const roleTypePriority: (keyof typeof keywordTaxonomy)[] = [
 ]
 
 const salesAdjacentKeywords = [
-  'sales', 'sell', 'selling', 'client', 'lead generation',
+  'sales', 'sell', 'selling', 'sellers', 'client', 'clients',
+  'lead generation', 'lead gen', 'leads', 'generate leads',
   'commission', 'high ticket', 'income', 'appointment setter',
-  'appointment setting', 'closer', 'account executive',
-  'revenue', 'quota', 'prospect', 'outbound', 'inbound',
-  'deal', 'pipeline', 'closing', 'customer acquisition',
-  'sales rep', 'sales development', 'business development',
-  'account management', 'cold call', 'cold email',
-  'lead qualification', 'prospecting', 'upsell', 'cross-sell',
-  'sales process', 'sales cycle', 'win rate',
+  'appointment setting', 'set appointments', 'closer',
+  'account executive', 'account manager', 'book deals',
+  'revenue', 'quota', 'prospect', 'prospecting', 'outbound',
+  'inbound', 'deal', 'pipeline', 'closing', 'closed',
+  'customer acquisition', 'sales rep', 'sales development',
+  'business development', 'account management', 'cold call',
+  'cold email', 'lead qualification', 'upsell', 'cross-sell',
+  'sales process', 'sales cycle', 'win rate', 'negotiate',
+  'demo', 'presentation', 'phone', 'calling', 'caller',
+  'dialer', 'consultative', 'clients', 'contracts',
+  'monthly recurring', 'ARR', 'MRR', 'commissions',
+  'affiliate', 'partner program',
 ]
-
-const excludeKeywords = [
-  'customer service', 'customer support', 'help desk', 'support specialist',
-  'technical support', 'it support',
-  'software engineer', 'software developer', 'full stack', 'frontend',
-  'backend', 'devops', 'data engineer',
-  'data entry', 'administrative assistant', 'executive assistant',
-  'receptionist', 'office manager',
-  'warehouse', 'warehouse associate', 'delivery driver', 'driver',
-  'nurse', 'cna', 'registered nurse', 'phlebotomist', 'medical assistant',
-  'certified nursing', 'caregiver',
-  'mechanic', 'electrician', 'plumber', 'hvac technician',
-  'cleaner', 'cleaning', 'janitor',
-  'cook', 'chef', 'server', 'bartender', 'host',
-  'security guard', 'security officer',
-  'laborer', 'general labor', 'construction worker',
-  'truck driver', 'cdl',
-]
-
-function isExcluded(title: string | null, rawText: string): boolean {
-  const text = [title ?? '', rawText].join(' ').toLowerCase()
-  for (const kw of excludeKeywords) {
-    if (text.includes(kw)) return true
-  }
-  return false
-}
 
 function hasSalesAdjacent(title: string | null, rawText: string): boolean {
   const text = [title ?? '', rawText].join(' ').toLowerCase()
@@ -301,8 +298,6 @@ export function tagJobs(jobs: JobPostInput[]): JobPostInput[] {
   const tagged: JobPostInput[] = []
 
   for (const job of jobs) {
-    if (isExcluded(job.title, job.raw_text)) continue
-
     const classification = classifyJob(job.title, job.raw_text)
     const hasRole = !!classification.role_type
 
